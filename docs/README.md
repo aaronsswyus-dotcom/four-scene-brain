@@ -1,7 +1,7 @@
 # four-scene-brain · 文档索引
 
 > 用途：一眼分清**核心契约文件**（必读、冻结、随版本携带）与**过程/背景文档**（可追溯，可不随版本带）。
-> 更新：2026-07-26 V1+V2 已交付（common + robot + 3d + video），31/31 测试通过；V3（game 双方向）准备中。
+> 更新：2026-07-26 V1+V2 已交付（common + robot + 3d + video），31/31 测试通过；V3/V4/V5 准备包就绪（HY-3 过夜开发总入口：`prompts/hy3-overnight-master.md`）。
 
 ---
 
@@ -13,13 +13,27 @@
 | **`v1-development-plan.md`** | **V1 开发文档**（common+physical：robot + robot的3D场景；范围/框架/接口/P0–P8/DoD）。 | V1 开发期；V2–V5 参考模式 |
 | **`v2-development-plan.md`** | **V2 开发文档**（common+video：payload/接口/DoD/P0–P9/SafetyGate双模式）。 | V2 开发期 |
 | **`v3-development-plan.md`** | **V3 开发文档**（common+game **双方向**：level 可玩关卡 + worldmodel 交互式推演；payload/接口/DoD/P0–P9）。✅ **D-V3-1 已拍板（A+B 双方向）**。 | V3 开发期 |
+| **`v4-development-plan.md`** | **V4 开发文档**（common+完整独立 3D，物理阵营，多任务：robot_scene/text_to_3d/image_to_3d/pointcloud_completion/pbr_texture；payload/接口/DoD/P0–P9）。 | V4 开发期 |
+| **`v5-development-plan.md`** | **V5 开发文档**（全场景集成 + 跨分支数据飞轮 + 发布；不新建分支；DAG/统一飞轮/DoD/P0–P5）。 | V5 开发期（须 V3+V4 先完成） |
 | **`oss-integration-and-maintenance.md`** | **开源接入合规 + 可维护性规范**（3 红线、E1–E6、contract test、mock/real、README模板、测试分层、配置外化、变更纪律）。 | 接任何开源框架 / 写代码全程 |
 | **`engineering-setup.md`** | **工程规范 + 开源选型**（common纯stdlib、5道测试门禁T1–T5、候选框架清单、包名/pytest/git）。 | 搭环境 / 选型 / 写测试 |
 | **`oss-list-v1.md`** | **V1 开源项目清单**（运行时零三方依赖；backbone 候选与处置）。 | V1 启动前 / 选型参考 |
 | **`oss-list-v2.md`** | **V2 开源项目清单 + backbone adapter 接口规范**（HunyuanVideo/备选；VideoBackbone 统一接口）。 | V2 启动前 / 选型 + 接口对齐 |
 | **`oss-list-v3.md`** | **V3 开源项目清单 + GameBackbone adapter 接口规范**（A 关卡生成 MarioGPT 等 / B 交互式 GameGen-O·OASIS·DIAMOND；方向感知统一接口）。 | V3 启动前 / 选型 + 接口对齐 |
+| **`oss-list-v4.md`** | **V4 开源项目清单 + ThreeDBackbone adapter 接口规范**（TRELLIS 主推 / TripoSR·DreamGaussian·Shap-E 备选；任务感知统一接口）。 | V4 启动前 / 选型 + 接口对齐 |
+| **`oss-list-v5.md`** | **V5 开源项目清单**（集成版无新 backbone；基础设施同接口替换 Mem0/Azure + 全版本 backbone 接入总览）。 | V5 启动前 / 选型参考 |
 
-> 这 9 份是"真契约"，开发时**只看这 9 份**即可。
+> 这 13 份是"真契约"，开发时**只看这 13 份**即可。
+
+---
+
+## 🔵 测试与真模型接入（跨版本通用）
+
+| 文件 | 作用 | 何时用 |
+|---|---|---|
+| **`acceptance-test-plan.md`** | **V3/V4/V5 验收测试计划**（测试金字塔 + 各版本 DoD 清单 + 全量回归 + 关键测试点）。 | 每版本开发完逐项验收 |
+| **`model-integration-runbook.md`** | **真模型接入 + 自动测试 Runbook**（T1–T5 门禁 + mock/real 开关 + 自动测试 + 测试报告模板）。 | mock 全交付后接真 backbone |
+| **`../prompts/hy3-overnight-master.md`** | **HY-3 过夜主开发包**（V3→V4→V5 依次开发总控 + 测试 + 模型接入 + 报告）。 | HY-3 自主开发总入口 |
 
 ---
 
@@ -64,4 +78,4 @@ four-scene-brain/
 
 ## 一句话
 
-**开发只带 9 份核心**（contract / v1-plan / v2-plan / v3-plan / oss-maintenance / eng-setup / oss-list-v1 / oss-list-v2 / oss-list-v3）；4 份过程稿留作追溯。新增场景按 `common-contract.md` §13 接入清单走，**全程不改 common**。
+**开发只带 13 份核心**（contract / v1–v5-plan / oss-maintenance / eng-setup / oss-list-v1–v5）；4 份过程稿留作追溯。新增场景按 `common-contract.md` §13 接入清单走，**全程不改 common**；HY-3 过夜开发从 `prompts/hy3-overnight-master.md` 进。
