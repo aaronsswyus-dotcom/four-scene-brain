@@ -83,7 +83,7 @@ meta:              dict
 - `backbone="mock"`（V3 默认）→ `MockGameBackbone`（确定性网格；level 用 sha256 布图 + 走廊可达，worldmodel 方块按动作平移；retry 收敛）
 - `backbone="mariogpt-azure"` / `"gamegen-azure"` / `"oasis-azure"` → `NotImplementedError`（T1–T5 门禁未过）
 
-换真 backbone：新增 `backbone_<name>.py`（实现 `GameBackbone`）+ 改 `adapter.py` 一行，其余文件全不动。
+换真 backbone：新增 `backbone_<name>.py`（实现 `GameBackbone`）+ 改 `adapter.py` 一行，其余文件全不动。V3 已按 oss-list-v3 §4.3 预置 3 个占位 stub（`backbone_gamegen.py` / `backbone_oasis.py` / `backbone_mariogpt.py`），均 `raise NotImplementedError`，仅定死接口形态，过 T1–T5 门禁后再填真实实现。
 
 ## 运行
 
@@ -100,6 +100,9 @@ python -m pytest tests/test_game_branch.py -v
 | scene_objects.py | — | 游戏关键词词汇表（主题/实体/动作/元素，中英双语），WAM+Critic 共用 |
 | backbone_interface.py | GameBackbone | 防腐层抽象接口（config/返回值必带 direction） |
 | backbone_mock.py | GameBackbone | Mock 实现：level 布图（走廊可达/challenge 封墙）+ worldmodel 方块平移，均确定性 |
+| backbone_gamegen.py | GameBackbone | 方向 B 主推（GameGen-O on Azure）占位 stub；未过 T1–T5 门禁前 `generate` 抛 `NotImplementedError` |
+| backbone_oasis.py | GameBackbone | 方向 B 备选（OASIS）占位 stub；同上 |
+| backbone_mariogpt.py | GameBackbone | 方向 A 主推（MarioGPT）占位 stub；同上 |
 | wam.py | WorldModel | GameWAM，注入 backbone，从 goal.constraints 取 direction，转发 retry |
 | critic.py | Critic | 按 direction 分派：level 可玩性（BFS/边界/悬空/尺寸）+ worldmodel 动作一致性 |
 | primitives.py | PrimitiveLibrary | level 统计基元 / worldmodel frame_step+action_apply；game_spec 塞进 meta 透传 |

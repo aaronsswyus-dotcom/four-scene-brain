@@ -68,8 +68,9 @@ All notable changes to **four-scene-brain** are documented here.
   - `wam.py` / `critic.py` / `primitives.py` / `mapper.py` / `executor.py` 全部按 `direction` 分派；**不继承** `PhysicalWorldModelBase`（像素阵营独立）。
   - `safety_gate.py` **双模式**（audit：血腥/NSFW/版权 → BLOCK；越界 → DEGRADE / passthrough）。
   - `backbone_interface.py` / `backbone_mock.py` — `GameBackbone` 防腐层 + 确定性 mock。
+  - `backbone_gamegen.py` / `backbone_oasis.py` / `backbone_mariogpt.py` — 真 backbone 占位 stub（oss-list-v3 §4.3），`generate` 全 `raise NotImplementedError`，仅定死接口形态，过 T1–T5 门禁后再填真实实现。
 - **`examples/game_demo.py`**：level / worldmodel / retry / audit BLOCK / passthrough PASS 场景。
-- **`tests/test_game_branch.py`**（17 pytest）：双方向正常闭环 + retry + 双方向共享一 target + 安全双模式 + 防腐层确定性 + Critic 各方向正确性。
+- **`tests/test_game_branch.py`**（18 pytest）：双方向正常闭环 + retry + 双方向共享一 target + 安全双模式 + 防腐层确定性 + Critic 各方向正确性 + 真 backbone stub 门禁。
 
 ### Changed / 变更
 - 全量测试 **48/48 PASS**（31 V1–V2 + 17 V3）。

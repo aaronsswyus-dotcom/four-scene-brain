@@ -18,6 +18,9 @@ import tempfile
 from branches.game import register as register_game
 from branches.game.backbone_mock import MockGameBackbone
 from branches.game.backbone_interface import GameBackbone
+from branches.game.backbone_gamegen import GameGenOBackbone
+from branches.game.backbone_oasis import OASISBackbone
+from branches.game.backbone_mariogpt import MarioGPTBackbone
 from branches.game.critic import GameCritic
 from branches.game.safety_gate import GameSafetyGate
 from common.interfaces.data_objects import (
@@ -132,6 +135,28 @@ def test_backbone_determinism_worldmodel():
     assert o1["direction"] == o2["direction"] == "worldmodel"
 
 
+# ---------------------- real-backbone stubs (oss-list-v3 §4.3) ----------------
+# These are V3 placeholders: the interface is DEFINED but the real Azure-backed
+# backbones are not wired until T1-T5 gates pass. They MUST raise
+# NotImplementedError on generate() so nothing is falsely "working".
+
+def test_real_backbone_stubs_raise_not_implemented():
+    for cls, direction in (
+        (GameGenOBackbone, "worldmodel"),
+        (OASISBackbone, "worldmodel"),
+        (MarioGPTBackbone, "level"),
+    ):
+        b = cls()
+        assert isinstance(b, GameBackbone)
+        info = b.get_info()
+        assert info["status"] == "stub"
+        try:
+            b.generate("x", {"direction": direction})
+            raise AssertionError(f"{cls.__name__} stub must raise NotImplementedError")
+        except NotImplementedError:
+            pass
+
+
 # --------------------------- Critic correctness -----------------------------
 
 def _lvl_goal():
@@ -187,7 +212,8 @@ ALL = [test_level_normal_closed_loop, test_worldmodel_normal_closed_loop,
        test_safety_audit_block, test_safety_passthrough_pass,
        test_safety_dual_mode_switch, test_safety_bad_mode_raises,
        test_backbone_is_anticorruption_layer, test_backbone_determinism_level,
-       test_backbone_determinism_worldmodel, test_critic_accepts_playable_level,
+       test_backbone_determinism_worldmodel, test_real_backbone_stubs_raise_not_implemented,
+       test_critic_accepts_playable_level,
        test_critic_rejects_unreachable_level, test_critic_malformed_level_is_structural,
        test_critic_accepts_moving_worldmodel, test_critic_rejects_unknown_action_worldmodel,
        test_critic_unknown_direction_is_structural]
