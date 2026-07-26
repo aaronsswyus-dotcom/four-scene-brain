@@ -1,7 +1,7 @@
 # four-scene-brain · 文档索引
 
 > 用途：一眼分清**核心契约文件**（必读、冻结、随版本携带）与**过程/背景文档**（可追溯，可不随版本带）。
-> 更新：2026-07-26 V1 已交付（common + robot + 3d），47/47 测试通过。
+> 更新：2026-07-26 V1 已交付（common + robot + 3d），47/47 测试通过；V2 规划已出（video 分支）。
 
 ---
 
@@ -11,11 +11,13 @@
 |---|---|---|
 | **`common-contract.md`** | **通用层唯一权威契约**（思路/框架/边界/接口/数据对象/状态机/接入清单/冻结纪律）。已 FROZEN。 | **V1–V5 全程**；每个版本开发都把它当上下文 |
 | **`v1-development-plan.md`** | **V1 开发文档**（common+physical：robot + robot的3D场景；范围/框架/接口/P0–P8/DoD）。 | V1 开发期；V2–V5 参考模式 |
+| **`v2-development-plan.md`** | **V2 开发文档**（common+video：payload/接口/DoD/P0–P9/SafetyGate双模式）。 | V2 开发期 |
 | **`oss-integration-and-maintenance.md`** | **开源接入合规 + 可维护性规范**（3 红线、E1–E6、contract test、mock/real、README模板、测试分层、配置外化、变更纪律）。 | 接任何开源框架 / 写代码全程 |
 | **`engineering-setup.md`** | **工程规范 + 开源选型**（common纯stdlib、5道测试门禁T1–T5、候选框架清单、包名/pytest/git）。 | 搭环境 / 选型 / 写测试 |
 | **`oss-list-v1.md`** | **V1 开源项目清单**（运行时零三方依赖；backbone 候选与处置）。 | V1 启动前 / 选型参考 |
+| **`oss-list-v2.md`** | **V2 开源项目清单 + backbone adapter 接口规范**（HunyuanVideo/备选；VideoBackbone 统一接口）。 | V2 启动前 / 选型 + 接口对齐 |
 
-> 这 5 份是"真契约"，开发时**只看这 5 份**即可。
+> 这 7 份是"真契约"，开发时**只看这 7 份**即可。
 
 ---
 
@@ -59,4 +61,4 @@ four-scene-brain/
 
 ## 一句话
 
-**开发只带 5 份核心**（contract / v1-plan / oss-maintenance / eng-setup / oss-list-v1）；4 份过程稿留作追溯。新增场景按 `common-contract.md` §13 接入清单走，**全程不改 common**。
+**开发只带 7 份核心**（contract / v1-plan / v2-plan / oss-maintenance / eng-setup / oss-list-v1 / oss-list-v2）；4 份过程稿留作追溯。新增场景按 `common-contract.md` §13 接入清单走，**全程不改 common**。
