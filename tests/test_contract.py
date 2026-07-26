@@ -101,13 +101,16 @@ def test_common_pure_stdlib():
     for py in common_dir.rglob("*.py"):
         for line in py.read_text(encoding="utf-8").splitlines():
             s = line.strip()
-            root = None
-            if s.startswith("import ") and not s.startswith("import common"):
-                root = s.split()[1].split(".")[0]
-            elif s.startswith("from ") and not s.startswith("from common"):
-                root = s.split()[1].split(".")[0]
-            if root and root not in std and root != "common" and not root.startswith("."):
-                offenders.append(f"{py.name}: {s}")
+            roots = []
+            if s.startswith("import "):
+                # handle "import a, b as c"
+                for part in s[len("import "):].split(","):
+                    roots.append(part.strip().split(" as ")[0].split(".")[0].strip())
+            elif s.startswith("from "):
+                roots.append(s.split()[1].split(".")[0])
+            for root in roots:
+                if root and root not in std and root != "common" and not root.startswith("."):
+                    offenders.append(f"{py.name}: {s}")
     assert not offenders, f"common/ has non-stdlib imports: {offenders}"
 
 
