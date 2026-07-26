@@ -12,17 +12,17 @@ A **modality-agnostic orchestration core** that routes language or machine-state
 
 **Scope**: common orchestration backbone + stable interface contracts + cross-branch telemetry flywheel. Scene capabilities are integrated as branch plugins via adapters (no backbone hard-coding in core).
 
-### Current Status — V1 + V2 Delivered
+### Current Status — V1–V5 All Delivered (all-mock)
 
 | Version | Combination | Status |
 |---|---|---|
-| **V1** | common + robot + 3d (robot job scene) | ✅ **This repo** |
-| **V2** | + video (pixel camp, all-mock) | ✅ **This repo** |
-| V3 | + game | Planned |
-| V4 | + complete standalone 3D | Planned |
-| V5 | Full integration + cross-branch flywheel | Planned |
+| **V1** | common + robot + 3d (robot job scene) | ✅ **Delivered** |
+| **V2** | + video (pixel camp, all-mock) | ✅ **Delivered** |
+| **V3** | + game (dual-direction: level + worldmodel) | ✅ **Delivered** |
+| **V4** | + complete standalone 3D (multi-task) | ✅ **Delivered** |
+| **V5** | Full integration + cross-branch flywheel + release | ✅ **Delivered** |
 
-**Boundary statement**: V1 (physical camp) and V2 (pixel camp) validate the orchestration kernel, interface contracts, and flywheel flow — NOT real-world feasibility. All backbones are mock (real GR00T / DreamGaussian / HunyuanVideo go through Azure later, behind T1–T5 gates in `docs/engineering-setup.md`).
+**Boundary statement**: V1–V5 validate the orchestration kernel, interface contracts, cross-branch DAG chaining, and the unified data flywheel — **NOT real-world feasibility or per-branch quality**. All backbones are mock (real GR00T / DreamGaussian / HunyuanVideo / TRELLIS go through Azure later, behind T1–T5 gates in `docs/engineering-setup.md`). V5 proves the終局 proposition: **one frozen kernel drives all four scenes concurrently, and every scene's Telemetry flows into one flywheel** — but mock quality ≠ real quality.
 
 ### Highlights
 
@@ -43,13 +43,22 @@ python -m examples.3d_scene_demo
 # video minimal loop: "a cat runs on grass" → placeholder mp4 + SafetyGate dual-mode
 python -m examples.video_demo
 
+# game minimal loop: dual-direction (playable level + pixel worldmodel) + SafetyGate
+python -m examples.game_demo
+
+# full 3D minimal loop: text/image_to_3d + pointcloud + pbr + retry + V1 robot_scene
+python -m examples.3d_full_demo
+
+# V5 integration: 3d→robot chained DAG + video+game + cross-branch flywheel view
+python -m examples.integration_demo
+
 # Freeze acceptance
 python -m tests.test_contract     # reflection contract test: interfaces/fields/enums immutable
 python -m tests.test_zero_diff    # zero-diff: plug in mock5 scene, common git diff stays empty
 
 # Full test suite (optional, requires pytest)
 pip install pytest
-python -m pytest tests/ -v         # 31 tests, ~0.5s
+python -m pytest tests/ -v         # 72 tests, ~1s
 ```
 
 ### Three Iron Laws
@@ -70,11 +79,11 @@ common/               # frozen kernel (pure stdlib, v1.0.0)
 branches/
 ├── _physical/        #   physical-camp shared WAM prior base (scene-side)
 ├── robot/            #   V1 ✅ robot branch (mock, zero-torque executor)
-├── 3d/               #   V1 ✅ robot-job-scene (placeholder GLB export)
+├── 3d/               #   V1/V4 ✅ robot-scene + full multi-task 3D (text/image/pointcloud/pbr)
 ├── video/            #   V2 ✅ video branch (mock, pixel camp)
-├── game/             #   V3 placeholder
-examples/             # two minimal closed-loop demos
-tests/                # contract test + zero-diff acceptance + edge cases
+├── game/             #   V3 ✅ game branch (dual-direction: level + worldmodel)
+examples/             # per-branch demos + V5 integration_demo + _flywheel_view
+tests/                # contract test + zero-diff acceptance + per-branch + integration
 docs/                 # frozen contract + design docs (see docs/README.md)
 ```
 
@@ -90,17 +99,17 @@ docs/                 # frozen contract + design docs (see docs/README.md)
 
 **自研范围**：通用主干编排层 + 统一接口契约 + 跨分支数据飞轮；场景能力通过插件化分支接入（防腐层封装 backbone，内核不绑死任何模型）。
 
-### 当前状态：V1 + V2 已交付
+### 当前状态：V1–V5 全部交付（全 mock）
 
 | 版本 | 组合 | 状态 |
 |---|---|---|
-| **V1** | common + robot + 3d（robot 作业场景） | ✅ **本仓库当前版本** |
-| **V2** | + video（像素阵营，全 mock） | ✅ **本仓库当前版本** |
-| V3 | + game | 计划 |
-| V4 | + 完整独立 3D | 计划 |
-| V5 | 全场景集成 + 跨分支飞轮 | 计划 |
+| **V1** | common + robot + 3d（robot 作业场景） | ✅ **已交付** |
+| **V2** | + video（像素阵营，全 mock） | ✅ **已交付** |
+| **V3** | + game（双方向：level + worldmodel） | ✅ **已交付** |
+| **V4** | + 完整独立 3D（多任务） | ✅ **已交付** |
+| **V5** | 全场景集成 + 跨分支飞轮 + 发布 | ✅ **已交付** |
 
-**⚠️ 边界声明（V1/V2 DoD #7）**：V1（物理阵营）与 V2（像素阵营）验证的是编排内核 + 接口契约 + 数据飞轮，**不证明单场景真实可行性**。所有 backbone 均为 mock（真 GR00T / DreamGaussian / HunyuanVideo 后续走 Azure，接入前过 `docs/engineering-setup.md` §2 五道门禁）。mock 的"假设可达"≠ 真实可达（sim2real 缺口）。
+**⚠️ 边界声明**：V1–V5 验证的是编排内核 + 接口契约 + 跨分支 DAG 串联 + 统一数据飞轮，**不证明单场景真实可行性或质量**。所有 backbone 均为 mock（真 GR00T / DreamGaussian / HunyuanVideo / TRELLIS 后续走 Azure，接入前过 `docs/engineering-setup.md` §2 五道门禁）。V5 验证终局命题：**一个冻结内核同时驱动四场景，且各场景 Telemetry 汇入同一飞轮**——但 mock 的"假设可达"≠ 真实可达（sim2real 缺口）。
 
 ### 核心特性
 
@@ -121,13 +130,22 @@ python -m examples.3d_scene_demo
 # video 最小闭环：猫在草地奔跑 → 占位 mp4 + SafetyGate 双模式
 python -m examples.video_demo
 
+# game 最小闭环：双方向（可玩关卡 + 像素世界模型）+ SafetyGate
+python -m examples.game_demo
+
+# 完整 3D 最小闭环：text/image_to_3d + 点云补全 + PBR + retry + V1 robot_scene
+python -m examples.3d_full_demo
+
+# V5 集成：3d→robot 串联 DAG + video+game + 跨分支飞轮聚合视图
+python -m examples.integration_demo
+
 # 冻结验收
 python -m tests.test_contract     # 反射契约测试：接口/字段/枚举一字不改
 python -m tests.test_zero_diff    # 零 diff 验收：新增 mock5 场景，common 零改动
 
 # 完整测试套件（可选，需装 pytest）
 pip install pytest
-python -m pytest tests/ -v         # 31 个测试，约 0.5 秒
+python -m pytest tests/ -v         # 72 个测试，约 1 秒
 ```
 
 ### 三条铁律
@@ -148,11 +166,11 @@ common/               # 冻结内核（纯 stdlib，v1.0.0）
 branches/
 ├── _physical/        #   物理阵营共享 WAM 先验基类（场景侧，非 common）
 ├── robot/            #   V1 ✅ 机器人分支（全 mock，零力矩执行）
-├── 3d/               #   V1 ✅ robot 作业场景（占位 GLB 导出）
+├── 3d/               #   V1/V4 ✅ robot 作业场景 + 完整多任务 3D（text/image/点云/PBR）
 ├── video/            #   V2 ✅ 视频分支（全 mock，像素阵营）
-├── game/             #   V3 占位
-examples/             # 两个最小闭环 demo
-tests/                # 契约测试 + 零 diff 验收 + 边界测试
+├── game/             #   V3 ✅ 游戏分支（双方向：level + worldmodel）
+examples/             # 各分支 demo + V5 integration_demo + _flywheel_view 聚合视图
+tests/                # 契约测试 + 零 diff 验收 + 各分支测试 + 集成测试
 docs/                 # 冻结契约与全部设计文档（见 docs/README.md 索引）
 ```
 
