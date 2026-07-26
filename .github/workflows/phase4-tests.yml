@@ -57,10 +57,9 @@ jobs:
           python-version: "3.13"
           cache: pip
 
-      - name: Install project (mock-only, no real-backbone deps)
+      - name: Install test deps (repo runs via pythonpath=["."]; no package install)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
           pip install pytest
 
       - name: Run full mock test suite
@@ -75,7 +74,7 @@ jobs:
           python -m branches.game.backbone_mock
           python -m branches.game.backbone_mariogpt
           python -m branches.video.adapter
-          python -m branches.three_d.adapter
+          python -c "import runpy; runpy.run_module('branches.3d.adapter', run_name='__main__')"
           python -m branches.robot.adapter 2>/dev/null || echo "(robot adapter self-test skipped)"
 
   # ---------------------------------------------------------------------------
@@ -94,10 +93,9 @@ jobs:
           python-version: "3.13"
           cache: pip
 
-      - name: Install project
+      - name: Install test deps
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
           pip install pytest
 
       - name: Run zero-diff contract test
@@ -125,10 +123,9 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: Install project + mario-gpt
+      - name: Install test deps + mario-gpt
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
           pip install pytest
           # mario-gpt pulls torch + transformers + Pillow (~500MB download)
           pip install mario-gpt
@@ -169,10 +166,9 @@ jobs:
           python-version: "3.13"
           cache: pip
 
-      - name: Install project
+      - name: Install test deps
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
           pip install pytest
 
       - name: Check FAL_KEY secret presence
