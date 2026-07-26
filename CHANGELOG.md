@@ -22,8 +22,8 @@ All notable changes to **four-scene-brain** are documented here.
 - **`tests/test_integration.py`**（7 pytest）：跨分支 DAG + depends_on 强制排序 + 像素复合 + 统一飞轮聚合 + 单分支不回归 + 四 target 同注册 + 集成后 `common/` git diff 为空。
 
 ### Changed / 变更
-- `README.md`：状态表 V1–V5 全标 ✅ 已交付；Quick Start 补 `game_demo` / `3d_full_demo` / `integration_demo`；测试数 → **72**。
-- 全量测试 **72/72 PASS**（V1–V4 65 + V5 集成 7）；全部 6 个 demo 不回归。
+- `README.md`：状态表 V1–V5 全标 ✅ 已交付；Quick Start 补 `game_demo` / `3d_full_demo` / `integration_demo`；测试数 → **73**。
+- 全量测试 **73/73 PASS**（V1–V4 66 + V5 集成 7）；全部 6 个 demo 不回归。
 
 ### 边界声明 / Boundary
 - V5 验证**集成与跨分支飞轮闭环**（冻结内核多场景并发驱动 + Telemetry 汇同一缓冲），**不证明任一分支的真实质量**（全 mock backbone）。
