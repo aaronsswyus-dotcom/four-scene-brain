@@ -29,7 +29,7 @@ All notable changes to **four-scene-brain** are documented here.
 - V5 验证**集成与跨分支飞轮闭环**（冻结内核多场景并发驱动 + Telemetry 汇同一缓冲），**不证明任一分支的真实质量**（全 mock backbone）。
 - **`common/`（含 `common/flywheel` 接口）零改动**（git diff 为空，零 diff 验收通过）。分支之间不直接 import，只经 SubGoal DAG + State 串联交互。
 
-> 相关 commits：`<V5-commit>`（V5 集成 + 跨分支飞轮 + 发布）。
+> 相关 commits：`2350d80`（V5 集成 + 跨分支飞轮 + 发布）。
 
 ---
 

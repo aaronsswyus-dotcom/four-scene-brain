@@ -48,4 +48,4 @@ python -m tests.test_zero_diff      # common git diff 为空
 
 ## Commits (release chain)
 
-`c4cf23e`(V1) → `5b0f93a` → `5e691d2` → `dc19316` → `1c635db`(V2) → `f407548` → `1c6843d`(V3) → `df189f4`(V4) → `<V5-commit>`(V5)
+`c4cf23e`(V1) → `5b0f93a` → `5e691d2` → `dc19316` → `1c635db`(V2) → `f407548` → `1c6843d`(V3) → `df189f4`(V4) → `2350d80`(V5)
