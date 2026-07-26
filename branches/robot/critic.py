@@ -21,8 +21,9 @@ class RobotCritic(Critic):
                                 meta={"verification_source": "schema"})
 
         threshold = float(goal.constraints.get("force_threshold_n", DEFAULT_FORCE_THRESHOLD_N))
+        force_values = p["wrench"]["force"]
         force = float(p.get("peak_contact_force_n",
-                            max(abs(x) for x in p["wrench"]["force"])))
+                            max((abs(x) for x in force_values), default=0.0)))
 
         # 1) force-torque check (primary)
         if force > threshold:

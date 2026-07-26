@@ -8,7 +8,7 @@ Checks (v1-plan §4): walkability + geometric fidelity + text-scene alignment
 from common.interfaces.abstract import Critic
 from common.interfaces.data_objects import Draft, SubGoal, Verification, FailureKind
 
-from .wam import Scene3DWAM
+from .scene_objects import objects_from_goal as _objects_from_goal
 
 DEFAULT_MIN_FIDELITY = 0.7
 
@@ -33,7 +33,7 @@ class Scene3DCritic(Critic):
         checks["fidelity"] = fidelity >= min_fid
 
         # 3) text-scene alignment: required objects present
-        required = set(Scene3DWAM._objects_from_goal(goal.goal)) - {"floor"}
+        required = set(_objects_from_goal(goal.goal)) - {"floor"}
         present = set(sem.get("objects", []))
         checks["alignment"] = required <= present
 

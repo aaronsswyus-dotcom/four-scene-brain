@@ -10,15 +10,7 @@ Payload structure (branch-frozen, see README.md):
 
 from branches._physical.base import PhysicalWorldModelBase
 from common.interfaces.data_objects import State, SubGoal
-
-_KNOWN_OBJECTS = (
-    (("table", "桌"), "table"),
-    (("cup", "杯"), "cup"),
-    (("tray", "托盘"), "tray"),
-    (("sofa", "沙发"), "sofa"),
-    (("door", "门"), "door"),
-    (("shelf", "架"), "shelf"),
-)
+from .scene_objects import objects_from_goal as _objects_from_goal
 
 
 class Scene3DWAM(PhysicalWorldModelBase):
@@ -26,7 +18,7 @@ class Scene3DWAM(PhysicalWorldModelBase):
 
     def _imagine(self, state: State, goal: SubGoal, dynamics: dict) -> object:
         retry = int((state.meta or {}).get("retry", 0))
-        objects = self._objects_from_goal(goal.goal)
+        objects = _objects_from_goal(goal.goal)
         walkable = ("walk" in goal.goal.lower()) or ("行走" in goal.goal) or ("通行" in goal.goal)
         fidelity = min(1.0, round(dynamics["plausibility"] + 0.15 * retry, 4))
         layout = [{"object": o, "xyz": [1.0 + i * 0.8, 0.0, 0.0 if o != "cup" else 0.75],
@@ -43,12 +35,6 @@ class Scene3DWAM(PhysicalWorldModelBase):
             "fidelity": fidelity,
             "refined_times": retry,
         }
-
-    @staticmethod
-    def _objects_from_goal(goal_text: str) -> list:
-        text = goal_text.lower()
-        found = [name for keys, name in _KNOWN_OBJECTS if any(k in text for k in keys)]
-        return found or ["floor"]
 
 
 if __name__ == "__main__":
