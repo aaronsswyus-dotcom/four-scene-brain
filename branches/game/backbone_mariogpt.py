@@ -5,7 +5,7 @@ Install:  pip install mario-gpt   (pulls torch + transformers + Pillow)
 
 API verified against official repo (shyamsn97/mario-gpt, NeurIPS 2023):
     from mario_gpt import MarioLM
-    lm = MarioLM()                                  # default lm_path="distilgpt2"
+    lm = MarioLM()                                  # loads fine-tuned Mario-GPT2 (PRETRAINED_LM_PATH)
     out = lm.sample(
         prompts=["many pipes, many enemies, some blocks, high elevation"],
         num_steps=1400,    # columns; row count is fixed at 14 (SMB height)
@@ -181,7 +181,11 @@ class MarioGPTBackbone(GameBackbone):
     VERSION = "0.1.0-real"
     DIRECTIONS = ["level"]  # MarioGPT is level-only
 
-    def __init__(self, lm_path: str = "distilgpt2", tokenizer_path: str = "distilgpt2"):
+    def __init__(self, lm_path: str = None, tokenizer_path: str = None):
+        # lm_path/tokenizer_path left None -> MarioLM() loads the fine-tuned
+        # shyamsn97/Mario-GPT2-700-context-length (NOT base distilgpt2). Passing
+        # "distilgpt2" would load the wrong (untrained-for-levels) base model
+        # and break cross-attention prompt conditioning on load.
         self._lm_path = lm_path
         self._tokenizer_path = tokenizer_path
         self._lm = None  # lazy
@@ -197,7 +201,10 @@ class MarioGPTBackbone(GameBackbone):
                 "(pulls torch + transformers + Pillow). "
                 "Or use backbone='mock' for dependency-free tests."
             ) from e
-        self._lm = MarioLM(lm_path=self._lm_path, tokenizer_path=self._tokenizer_path)
+        # No path args -> MarioLM() uses PRETRAINED_LM_PATH (fine-tuned Mario
+        # model). Passing lm_path="distilgpt2" would load the base model and
+        # break cross-attention prompt conditioning (fast crash on load).
+        self._lm = MarioLM()
         return self._lm
 
     def generate(self, prompt: str, config: dict) -> dict:
@@ -235,9 +242,11 @@ class MarioGPTBackbone(GameBackbone):
         lm = self._ensure_lm()
         smb_prompt = _translate_prompt(prompt)
 
-        # num_steps controls columns (SMB row count is fixed at 14). Ask for
-        # at least `width` columns so we have enough material to crop from.
-        num_steps = max(width, 14)
+        # num_steps controls columns; the SMB grid is fixed at 14 rows, so a
+        # full level of `width` columns needs ~14*width tokens. Ask for that
+        # many so view_level() yields a real 14-row grid we can crop from
+        # (too few tokens -> degenerate 1-row garbage level).
+        num_steps = max(14 * width, 14)
 
         try:
             out = lm.sample(
