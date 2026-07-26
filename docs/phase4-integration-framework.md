@@ -55,7 +55,28 @@
 - `.gitignore` 排除任何密钥文件（`.env` / `*_key*` / `credentials*`）。
 - 默认 CI：只跑 mock → 全量 pytest 绿 + 零 diff；real 测试默认 skip，配凭证才追加跑。
 
-### 1.5 common 零 diff 边界（阶段四红线）
+### 1.5 接入形态选择（本地 vs 云端 vs 可调用 API — 关键修正）
+
+> ⚠️ **修正本沙箱前期判断**：本文档初版称"本沙箱做不了真测试"过于悲观。联网核查 + 出网探针后实情：**4 分支里 3 个（video / 3d / game-A）可在本沙箱跑真测试**，仅 game-B / robot 需 GPU/仿真器。关键在**接入形态选择**——`oss-list` 默认想的是"本地权重部署"（形态 A），但**托管 API（形态 B）和本地小模型（形态 C）不需要 GPU**。
+
+四种接入形态 × 分支可行性（本沙箱出网已验证：`fal.run`✅ / `huggingface.co`✅ / `replicate.com`✅，`requests` 2.34.2 可用）：
+
+| 形态 | 含义 | 本沙箱可跑？ | 适用分支 | 方案 / 成本 |
+|---|---|---|---|---|
+| **A 本地权重+GPU** | 下载权重本地推理 | ❌ 沙箱无 GPU | video(14GB VRAM) / 3d(H100 级) / game-B / robot | HunyuanVideo 1.5 权重 / TRELLIS.2 权重 / OASIS 权重 |
+| **B 托管 API（HTTP+key）** | 调厂商/平台 REST API | ✅ **可跑** | **video** / **3d** | fal.ai: HunyuanVideo $0.4/次(~4min) / TRELLIS $0.25–0.35/次(GLB)；Replicate 亦可 |
+| **C 本地 CPU 小模型** | 小模型 CPU 推理 | ✅ **可跑** | **game-A** | MarioGPT = distilgpt2(~82M, MIT, `pip install mario-gpt`, CPU 可跑, 内置 Astar 验可玩性) |
+| **D 仿真器+GPU** | 策略模型+仿真环境 | ❌ 沙箱无 GPU | robot | GR00T + Isaac Sim（非纯 API 形态，最难） |
+| 待定 | 需 GPU 或找托管 API | 🟡 | game-B | OASIS 需 GPU；是否有托管 API 待 T2 核查 |
+
+**结论**：
+- 🟢 **video / 3d**：走 fal.ai API（形态 B），本沙箱仅需 `FAL_KEY` 即可跑真测试；T1 ✅(Apache2.0/MIT 商用)、T4(官方 quickstart) 由平台兜底，本沙箱只须过 T5(接口探针)。
+- 🟢 **game-A**：走 MarioGPT 本地 CPU（形态 C），**无需任何 key**，仅装 `torch(CPU)+mario-gpt`+联网下权重。零成本首测首选。
+- 🟠 **game-B / robot**：需 GPU/仿真器，本沙箱跑不了，待真环境或找托管 API。
+
+→ 阶段四**可立即在沙箱启动 3/4 分支**，无需等 Azure/GPU。建议首测顺序：**game-A(零成本) → video(给 key) → 3d(给 key) → game-B/robot(真环境)**。
+
+### 1.6 common 零 diff 边界（阶段四红线）
 
 阶段四所有改动只在：`branches/<scene>/` + `tests/test_<scene>_real.py` + `docs/reports/<branch>_<name>_report.md` + `examples/run_real_tests.sh`。**`common/` 一行不动**；`test_zero_diff` 必须持续通过。阶段四失败不得回头改 common 解围。
 
