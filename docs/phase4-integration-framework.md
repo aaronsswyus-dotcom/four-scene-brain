@@ -269,6 +269,27 @@ distill() → JSONL                 ← 本地 buffer，D4: 周期云端反馈�
 
 ---
 
+### 4.4 执行环境选择（GitHub Actions vs Azure VM）
+
+> 基于 2026-06 GitHub Actions 实际计费核查。仓库 four-scene-brain 为 public（前 3 分支 GitHub 零成本）。
+
+| 环境 | 适用分支 | 成本 | 说明 |
+|---|---|---|---|
+| **GitHub Actions 标准 CPU runner** | video/3d(经 fal.ai API) + game-A(MarioGPT CPU) | **public 免费无限**；private 2000 min/月免费 | ubuntu-latest 4核16G：装 torch CPU 跑 82M 模型 + HTTP 调 fal.ai；FAL_KEY 放 Secrets |
+| GitHub Actions GPU runner | game-B/robot 本地权重 | $0.052/min + **需 Team/Enterprise 付费计划**（public 也要钱） | 贵且需付费计划，不推荐 |
+| **Azure GPU VM**（NC/ND 系列） | game-B(OASIS) / robot(GR00T+Isaac Sim) | T4 ~$0.5/h、A100 ~$3-4/h，按需开机 | 跑本地大权重/仿真器专用，用完关省钱 |
+
+**推荐组合（成本最优）**：
+- 🟢 **前 3 分支**（video/3d/game-A）→ **GitHub Actions 标准 runner**（public 仓库免费）。FAL_KEY 放 GitHub Secrets，每次 push 自动跑 mock 全量回归 + 真测试增量（配 `FOURSCENE_REAL_TESTS=1` 时）。
+- 🟠 **后 2 分支**（game-B/robot）→ **Azure GPU VM 按需**（用完即关，按小时计费）。
+
+**public 仓库 + Secret 安全红线**：
+- `pull_request` 触发的 workflow 默认**不继承 secrets**（防恶意 PR 偷 FAL_KEY）→ **真测试只在 `push` 到 main / `workflow_dispatch` 手动触发，不在 PR 触发**。
+- `FAL_KEY` / `FOURSCENE_REAL_TESTS` 经 GitHub Secrets 注入，绝不入库（`.gitignore` 已排除密钥文件）。
+- mock 全量回归可在 PR 触发（无 secret，安全）。
+
+→ 阶段四 CI 产出物：`.github/workflows/phase4-tests.yml`（mock 回归 job + game-A 真测试 job + video/3d 真测试 job[需 secret] + 零 diff 校验 job）。
+
 ## 5. 红线汇总（继承 runbook §6 + 阶段四补充）
 
 1. 🔴 真 backbone 只在 `branches/<scene>/adapter.py` 内（robot 子类化 `RobotWAM`），绝不进 common。
