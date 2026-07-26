@@ -1,7 +1,7 @@
 # four-scene-brain · 文档索引
 
 > 用途：一眼分清**核心契约文件**（必读、冻结、随版本携带）与**过程/背景文档**（可追溯，可不随版本带）。
-> 更新：2026-07-26 V1 已交付（common + robot + 3d），47/47 测试通过；V2 规划已出（video 分支）。
+> 更新：2026-07-26 V1+V2 已交付（common + robot + 3d + video），31/31 测试通过。
 
 ---
 
@@ -48,14 +48,15 @@ four-scene-brain/
 │   ├── _physical/           #   物理阵营 WAM 共享基类
 │   ├── robot/               🟢 V1 ✅ 全 mock
 │   ├── 3d/                  🟢 V1 ✅ robot 作业场景
-│   ├── video/ game/         #   V2/V3 占位
+│   ├── video/                🟢 V2 ✅ 视频分支（全 mock，像素阵营）
+│   ├── game/                 #   V3 占位
 ├── examples/                # robot_demo + 3d_scene_demo
-├── tests/                   # 契约测试 + 零 diff 验收 + 边界测试（23 项）
+├── tests/                   # 契约测试 + 零 diff 验收 + 边界测试（31 项）
 ├── prompts/                 # HY-3 开发提示词（方法论追溯）
 └── docs/                    # 本索引 + 上述文档
 ```
 
-**测试**：`python -m pytest tests/ -v` → 23/23 PASS；全量回归 47/47。
+**测试**：`python -m pytest tests/ -v` → 31/31 PASS。
 
 ---
 

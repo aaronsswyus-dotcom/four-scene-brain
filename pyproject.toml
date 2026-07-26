@@ -1,0 +1,7 @@
+# pytest configuration for four-scene-brain.
+# Keeps the project root on sys.path so `from common...` / `from branches...`
+# resolve under both CLI pytest and the VSCode Test Explorer.
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"

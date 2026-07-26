@@ -1,0 +1,7 @@
+{
+  // Pin VSCode to the managed Python that has pytest 9.1.1 installed.
+  "python.defaultInterpreterPath": "C:/Users/aaron/.workbuddy/binaries/python/envs/default/Scripts/python.exe",
+  // Enable pytest as the test framework (current VSCode schema).
+  "python.testing.pytest.enabled": true,
+  "python.testing.pytest.args": ["tests"]
+}
