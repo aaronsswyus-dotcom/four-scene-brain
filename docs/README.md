@@ -1,7 +1,7 @@
 # four-scene-brain · 文档索引
 
 > 用途：一眼分清**核心契约文件**（必读、冻结、随版本携带）与**过程/背景文档**（可追溯，可不随版本带）。
-> 更新：2026-07-26 V1+V2 已交付（common + robot + 3d + video），31/31 测试通过。
+> 更新：2026-07-26 V1+V2 已交付（common + robot + 3d + video），31/31 测试通过；V3（game）准备中。
 
 ---
 
@@ -12,6 +12,7 @@
 | **`common-contract.md`** | **通用层唯一权威契约**（思路/框架/边界/接口/数据对象/状态机/接入清单/冻结纪律）。已 FROZEN。 | **V1–V5 全程**；每个版本开发都把它当上下文 |
 | **`v1-development-plan.md`** | **V1 开发文档**（common+physical：robot + robot的3D场景；范围/框架/接口/P0–P8/DoD）。 | V1 开发期；V2–V5 参考模式 |
 | **`v2-development-plan.md`** | **V2 开发文档**（common+video：payload/接口/DoD/P0–P9/SafetyGate双模式）。 | V2 开发期 |
+| **`v3-development-plan.md`** | **V3 开发文档**（common+game：可玩关卡；payload/接口/DoD/P0–P9）。⚠️ **D-V3-1 关卡解释待拍板**，拍板后再出 oss-list-v3 / hy3-v3 提示词。 | V3 开发期（设计稿） |
 | **`oss-integration-and-maintenance.md`** | **开源接入合规 + 可维护性规范**（3 红线、E1–E6、contract test、mock/real、README模板、测试分层、配置外化、变更纪律）。 | 接任何开源框架 / 写代码全程 |
 | **`engineering-setup.md`** | **工程规范 + 开源选型**（common纯stdlib、5道测试门禁T1–T5、候选框架清单、包名/pytest/git）。 | 搭环境 / 选型 / 写测试 |
 | **`oss-list-v1.md`** | **V1 开源项目清单**（运行时零三方依赖；backbone 候选与处置）。 | V1 启动前 / 选型参考 |
