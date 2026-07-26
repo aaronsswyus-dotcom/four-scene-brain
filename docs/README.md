@@ -33,8 +33,14 @@
 |---|---|---|
 | **`acceptance-test-plan.md`** | **V3/V4/V5 验收测试计划**（测试金字塔 + 各版本 DoD 清单 + 全量回归 + 关键测试点）。 | 每版本开发完逐项验收 |
 | **`model-integration-runbook.md`** | **真模型接入 + 自动测试 Runbook**（T1–T5 门禁 + mock/real 开关 + 自动测试 + 测试报告模板）。 | mock 全交付后接真 backbone |
-| **`phase4-integration-framework.md`** | **阶段四总控设计**（全分支接入框架/seam + 7类失败×5级降级阶梯 + 持续优化飞轮 + 本沙箱T1核查 + 执行路线图）。 | 阶段四启动前 / 真模型接入总蓝图 |
+| **`phase4-integration-framework.md`** | **阶段四总控设计**（全分支接入框架/seam + 7类失败×5级降级阶梯 + 持续优化飞轮 + 本沙箱T1核查 + 执行路线图 + 执行环境选择 GitHub Actions vs Azure）。 | 阶段四启动前 / 真模型接入总蓝图 |
 | **`../prompts/hy3-overnight-master.md`** | **HY-3 过夜主开发包**（V3→V4→V5 依次开发总控 + 测试 + 模型接入 + 报告）。 | HY-3 自主开发总入口 |
+
+### 测试报告（真模型接入实测，按 runbook §5 模板）
+
+| 文件 | 分支 / backbone | 状态 |
+|---|---|---|
+| `reports/game_mariogpt_report.md` | game / MarioGPT（distilgpt2, CPU, MIT） | ✅ 代码已落地（2026-07-27）；T1/T2/T5 已核查；T3/T4 + 自动测试待 `git push` 后 GitHub Actions `game-real-mariogpt` job 实测 |
 
 ---
 

@@ -136,15 +136,20 @@ def test_backbone_determinism_worldmodel():
 
 
 # ---------------------- real-backbone stubs (oss-list-v3 §4.3) ----------------
-# These are V3 placeholders: the interface is DEFINED but the real Azure-backed
-# backbones are not wired until T1-T5 gates pass. They MUST raise
-# NotImplementedError on generate() so nothing is falsely "working".
+# GameGenOBackbone / OASISBackbone are V3 placeholders: the interface is DEFINED
+# but the real Azure-backed backbones are not wired until T1-T5 gates pass. They
+# MUST raise NotImplementedError on generate() so nothing is falsely "working".
+#
+# MarioGPTBackbone was a V3 stub but is now a Phase 4 REAL integration (CPU-local
+# distilgpt2, MIT). Its real-test coverage lives in tests/test_game_real.py
+# (default-skip unless FOURSCENE_REAL_TESTS=1). Here we only assert its status
+# flipped from "stub" to "real" — the stub contract no longer applies to it.
 
 def test_real_backbone_stubs_raise_not_implemented():
+    # GameGenO / OASIS are still stubs
     for cls, direction in (
         (GameGenOBackbone, "worldmodel"),
         (OASISBackbone, "worldmodel"),
-        (MarioGPTBackbone, "level"),
     ):
         b = cls()
         assert isinstance(b, GameBackbone)
@@ -155,6 +160,27 @@ def test_real_backbone_stubs_raise_not_implemented():
             raise AssertionError(f"{cls.__name__} stub must raise NotImplementedError")
         except NotImplementedError:
             pass
+
+    # MarioGPT is now REAL (Phase 4): status flipped, no longer raises on
+    # instantiation; generate() proceeds (or raises ImportError if mario_gpt
+    # is not installed — both are acceptable, NotImplementedError is NOT).
+    mb = MarioGPTBackbone()
+    assert isinstance(mb, GameBackbone)
+    assert mb.get_info()["status"] == "real"
+    try:
+        mb.generate("x", {"direction": "level"})
+    except ImportError:
+        pass  # mario_gpt not installed in mock CI — expected
+    except NotImplementedError:
+        raise AssertionError(
+            "MarioGPT is Phase 4 real; level direction must not raise "
+            "NotImplementedError (only worldmodel should)")
+    # worldmodel direction still raises (MarioGPT is level-only)
+    try:
+        mb.generate("x", {"direction": "worldmodel"})
+        raise AssertionError("MarioGPT worldmodel must raise NotImplementedError")
+    except NotImplementedError:
+        pass
 
 
 # --------------------------- Critic correctness -----------------------------

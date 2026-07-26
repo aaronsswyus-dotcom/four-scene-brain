@@ -251,16 +251,23 @@ distill() → JSONL                 ← 本地 buffer，D4: 周期云端反馈�
 ### 4.1 本沙箱可立即做（无凭证 / 无 GPU）— 本文档即为交付
 - ✅ 产出本设计文档（框架 + 降级 + 优化）。
 - ✅ T1 联网核查 4 分支主推（见 §2.3 结论）。
-- ⏳ 可预制：4 个真 backbone adapter 骨架（基于公开接口形态，`generate()` 内部 try-import 真库，失败回退 skip）+ `tests/test_<scene>_real.py`（默认 skip）。**待用户确认是否要我接着写骨架**（见末尾问询）。
+- ✅ **game-A MarioGPT 真实现已落地**（2026-07-27）：
+  - `branches/game/backbone_mariogpt.py`：stub → real，lazy import `mario_gpt` + anti-corruption layer（SMB tile → 我们的 schema + 强制 1P/1G + 四边封闭 + BFS 走廊）
+  - `branches/game/adapter.py`：加 `backbone="mariogpt"` 选项（一行切换，common 零改动）
+  - `tests/test_game_real.py`：6 个默认-skip 测试（schema / seed 确定性 / Critic 集成 / SafetyGate / worldmodel 拒绝 / get_info 契约）
+  - `.github/workflows/phase4-tests.yml`：4 jobs（mock 回归 / zero-diff / game-A 真测 / video-3d 占位），公开仓库免费 CPU runner
+  - `docs/reports/game_mariogpt_report.md`：T1-T5 报告（T1/T2/T5 已核查，T3/T4 + 自动测试待 GitHub Actions 实测）
+  - 本地验证：73 passed + 6 skipped（real 默认 skip）+ zero-diff 通过 + common 零改动
+- ⏳ video / 3d / game-B / robot 真实现待写（按 §4.2 顺序）。
 
 ### 4.2 需真环境（Azure/GPU + 凭证）— 按本蓝图执行
 - T3 隔离装 / T4 quickstart / T5 接口探针。
 - 真实 `generate()` 实现 + 真测试 + `docs/reports/<branch>_<name>_report.md`。
 - 建议接入顺序（按 §2.3 可用性排序）：
-  1. 🟢 **3d / TRELLIS.2**（MIT + 原生 PBR + 任务对齐最好）
-  2. 🟢 **video / HunyuanVideo 1.5**（Apache 2.0 + 14GB VRAM，门槛最低）
-  3. 🟠 **game-B / OASIS**（GameGen-O 不可用，走备选）
-  4. 🟠 **game-A / MarioGPT**（T2 待核查）
+  1. ✅ **game-A / MarioGPT**（代码已落地，待 `git push` 后 GitHub Actions 自动跑 `game-real-mariogpt` job 实测）
+  2. 🟢 **3d / TRELLIS.2**（MIT + 原生 PBR + 任务对齐最好；走 fal.ai API 需 `FAL_KEY`）
+  3. 🟢 **video / HunyuanVideo 1.5**（Apache 2.0 + 14GB VRAM，门槛最低；走 fal.ai API 需 `FAL_KEY`）
+  4. 🟠 **game-B / OASIS**（GameGen-O 不可用，走备选；需 GPU）
   5. 🔴 **robot / GR00T N1.7 EA**（商用待 GA，当前研究/原型可用）
 
 ### 4.3 用户需提供

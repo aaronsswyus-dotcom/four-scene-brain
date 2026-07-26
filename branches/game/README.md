@@ -80,10 +80,11 @@ meta:              dict
 ## Backbone 接入（防腐层）
 
 `wam.py` 只通过 `GameBackbone.generate(prompt, config)` 调 backbone，**不直接调任何模型 API**。config 必带 `"direction"`，返回 dict 必带 `"direction"` + 该方向字段。
-- `backbone="mock"`（V3 默认）→ `MockGameBackbone`（确定性网格；level 用 sha256 布图 + 走廊可达，worldmodel 方块按动作平移；retry 收敛）
-- `backbone="mariogpt-azure"` / `"gamegen-azure"` / `"oasis-azure"` → `NotImplementedError`（T1–T5 门禁未过）
+- `backbone="mock"`（默认）→ `MockGameBackbone`（确定性网格；level 用 sha256 布图 + 走廊可达，worldmodel 方块按动作平移；retry 收敛）
+- `backbone="mariogpt"`（Phase 4 真接入）→ `MarioGPTBackbone`（distilgpt2 ~82M，CPU 可跑，MIT；`mario_gpt` 在 `generate()` 时 lazy import，mock 测试不受影响）
+- `backbone="gamegen-azure"` / `"oasis-azure"` / `"mariogpt-azure"` → `NotImplementedError`（Azure T1–T5 门禁未过；`mariogpt-azure` 是 V3 旧别名，真接入用 `"mariogpt"`）
 
-换真 backbone：新增 `backbone_<name>.py`（实现 `GameBackbone`）+ 改 `adapter.py` 一行，其余文件全不动。V3 已按 oss-list-v3 §4.3 预置 3 个占位 stub（`backbone_gamegen.py` / `backbone_oasis.py` / `backbone_mariogpt.py`），均 `raise NotImplementedError`，仅定死接口形态，过 T1–T5 门禁后再填真实实现。
+换真 backbone：新增 `backbone_<name>.py`（实现 `GameBackbone`）+ 改 `adapter.py` 一行，其余文件全不动。MarioGPT 已按此路径完成 Phase 4 真接入（lazy import + anti-corruption layer 把 SMB tile 标准化到本分支 schema）；GameGen-O / OASIS 仍是占位 stub，过 T1–T5 门禁后再填真实实现。
 
 ## 运行
 
@@ -102,7 +103,7 @@ python -m pytest tests/test_game_branch.py -v
 | backbone_mock.py | GameBackbone | Mock 实现：level 布图（走廊可达/challenge 封墙）+ worldmodel 方块平移，均确定性 |
 | backbone_gamegen.py | GameBackbone | 方向 B 主推（GameGen-O on Azure）占位 stub；未过 T1–T5 门禁前 `generate` 抛 `NotImplementedError` |
 | backbone_oasis.py | GameBackbone | 方向 B 备选（OASIS）占位 stub；同上 |
-| backbone_mariogpt.py | GameBackbone | 方向 A 主推（MarioGPT）占位 stub；同上 |
+| backbone_mariogpt.py | GameBackbone | 方向 A 主推（MarioGPT）**Phase 4 真接入**：distilgpt2 CPU 推理 + lazy import + SMB tile 标准化 |
 | wam.py | WorldModel | GameWAM，注入 backbone，从 goal.constraints 取 direction，转发 retry |
 | critic.py | Critic | 按 direction 分派：level 可玩性（BFS/边界/悬空/尺寸）+ worldmodel 动作一致性 |
 | primitives.py | PrimitiveLibrary | level 统计基元 / worldmodel frame_step+action_apply；game_spec 塞进 meta 透传 |
