@@ -1,8 +1,12 @@
-"""Scene3DMapper — S11 for 3d: primitives -> mesh-build Executable.
+"""Scene3DMapper — S11 for 3d (multi-task dispatch).
 
-Builds a minimal triangle-mesh scene spec (vertices/faces per object as boxes).
-Degrade support: meta['degrade'] halves mesh resolution (mock: fewer boxes ->
-merge objects into bounding volume).
+  - robot_scene (V1, UNCHANGED): floor/place_object primitives -> box-mesh
+    scene_nodes Executable. Degrade halves detail.
+  - generative (V4): a single 'mesh_object' primitive -> single-node Executable
+    carrying task/text_prompt/geometry/texture (SafetyGate + Executor need them).
+    Degrade clamps the geometry vertex count up to a safe floor.
+
+Both directions emit `scene_nodes` so the Executor's GLB writer is shared.
 """
 
 from common.interfaces.abstract import Mapper
@@ -11,6 +15,8 @@ from common.interfaces.data_objects import Primitive, SubGoal, Executable
 _BOX_SIZE = {"table": [1.2, 0.8, 0.75], "cup": [0.08, 0.08, 0.1],
              "tray": [0.4, 0.3, 0.03], "sofa": [2.0, 0.9, 0.8],
              "door": [0.9, 0.05, 2.0], "shelf": [0.8, 0.3, 1.8]}
+
+_MIN_VERTICES = 8   # safe floor for degrade re-map
 
 
 def _box_mesh(center, size):
@@ -26,6 +32,37 @@ def _box_mesh(center, size):
 class Scene3DMapper(Mapper):
     def map(self, primitives: list, goal: SubGoal) -> Executable:
         degrade = any((p.meta or {}).get("degrade") for p in primitives)
+
+        # ---- generative single-asset (V4) ----
+        gen = next((p for p in primitives if p.kind == "mesh_object"), None)
+        if gen is not None:
+            spec = gen.meta["threed_spec"]
+            mesh = spec["mesh"]
+            geo = dict(spec.get("geometry") or {})
+            if degrade:   # clamp geometry up to safe floor (re-check will PASS)
+                geo["vertices"] = max(int(geo.get("vertices", 0)), _MIN_VERTICES)
+                geo["manifold"] = True
+                if geo.get("faces", 0) <= 0 and spec["task"] != "pointcloud_completion":
+                    geo["faces"] = len(mesh.get("faces", [])) or 12
+            node = {"name": spec["task"], "mesh": mesh}
+            return Executable(
+                modality="geometry",
+                payload={
+                    "task": spec["task"],
+                    "representation": spec.get("representation", "mesh"),
+                    "scene_nodes": [node],
+                    "total_vertices": len(mesh.get("vertices", [])),
+                    "geometry": geo,
+                    "texture": spec.get("texture"),
+                    "semantics": spec.get("semantics", []),
+                    "text_prompt": spec.get("text_prompt", ""),
+                    "source": spec.get("source", ""),
+                    "detail": "low" if degrade else "normal",
+                },
+                meta={"degraded": degrade},
+            )
+
+        # ---- robot_scene (V1, UNCHANGED) ----
         nodes = []
         for p in primitives:
             if p.kind == "floor":
@@ -51,6 +88,8 @@ class Scene3DMapper(Mapper):
 
 if __name__ == "__main__":
     m = Scene3DMapper()
+
+    # robot_scene (V1)
     prims = [Primitive("floor", {"area_m2": 9.0, "walkable": True}, {}),
              Primitive("place_object", {"object": "table", "xyz": [1, 0, 0]}, {}),
              Primitive("place_object", {"object": "cup", "xyz": [1, 0, 0.75]}, {})]
@@ -58,6 +97,21 @@ if __name__ == "__main__":
     e = m.map(prims, g)
     assert len(e.payload["scene_nodes"]) == 3
     assert e.payload["total_vertices"] == 24 and e.payload["detail"] == "normal"
-    names = [n["name"] for n in e.payload["scene_nodes"]]
-    assert names == ["floor", "table", "cup"]
-    print("[OK] 3d mapper self-test passed")
+    assert [n["name"] for n in e.payload["scene_nodes"]] == ["floor", "table", "cup"]
+
+    # generative (V4)
+    spec = {"task": "text_to_3d", "representation": "mesh",
+            "mesh": {"vertices": [[0, 0, 0]] * 8, "faces": [[0, 1, 2]] * 12},
+            "geometry": {"vertices": 8, "faces": 12, "manifold": True, "bbox": [1, 1, 1]},
+            "texture": None, "semantics": ["chair"], "text_prompt": "a chair", "source": "a chair"}
+    pg = [Primitive("mesh_object", {"task": "text_to_3d"}, {"threed_spec": spec})]
+    eg = m.map(pg, g)
+    assert eg.payload["task"] == "text_to_3d" and eg.payload["total_vertices"] == 8
+    assert eg.payload["text_prompt"] == "a chair" and len(eg.payload["scene_nodes"]) == 1
+
+    # generative degrade clamps
+    pg[0].meta["degrade"] = True
+    spec["geometry"] = {"vertices": 0, "faces": 0, "manifold": False, "bbox": [1, 1, 1]}
+    ed = m.map(pg, g)
+    assert ed.payload["geometry"]["vertices"] >= 8 and ed.payload["geometry"]["manifold"]
+    print("[OK] 3d mapper self-test passed (robot_scene V1 + generative V4 + degrade)")

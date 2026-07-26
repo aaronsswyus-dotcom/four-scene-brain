@@ -78,19 +78,28 @@ class Scene3DExporter(Executor):
         nodes = p.get("scene_nodes", [])
         glb = _build_glb(nodes)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        path = self.output_dir / f"scene_{int(time.time() * 1000)}.glb"
+        task = p.get("task")   # None -> V1 robot_scene
+        ts = int(time.time() * 1_000_000)
+        # V4 generative -> model_<task>_<ts>.glb ; V1 robot_scene -> scene_<ts>.glb
+        fname = f"model_{task}_{ts}.glb" if task else f"scene_{ts}.glb"
+        path = self.output_dir / fname
         path.write_bytes(glb)
         faces_total = sum(len(n["mesh"]["faces"]) for n in nodes)
+        telemetry = {"vertices": p.get("total_vertices", 0),
+                     "faces": faces_total, "nodes": len(nodes),
+                     "detail": p.get("detail", "normal"),
+                     "glb_bytes": len(glb)}
+        if task:   # enrich generative telemetry (flywheel can group by task)
+            telemetry.update({"task": task,
+                              "representation": p.get("representation", "mesh"),
+                              "textured": p.get("texture") is not None})
         return Delivery(
             target="3d",
             artifact=str(path),
             meta={
                 "glb_bytes": len(glb),
                 "telemetry_kind": "geometry",
-                "telemetry_data": {"vertices": p.get("total_vertices", 0),
-                                   "faces": faces_total, "nodes": len(nodes),
-                                   "detail": p.get("detail", "normal"),
-                                   "glb_bytes": len(glb)},
+                "telemetry_data": telemetry,
             },
         )
 
