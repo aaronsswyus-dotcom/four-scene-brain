@@ -1,7 +1,9 @@
 """MarioGPT backbone adapter — REAL integration (Phase 4, game-A primary).
 
 distilgpt2 (~82M) fine-tuned on SMB levels. CPU-runnable. MIT license.
-Install:  pip install mario-gpt   (pulls torch + transformers + Pillow)
+Install (pinned for compatibility):
+    pip install 'mario-gpt==0.1.3' 'transformers==4.30.2'
+(mario-gpt==0.1.3 imports AutoModelWithLMHead, removed in transformers>=4.56)
 
 API verified against official repo (shyamsn97/mario-gpt, NeurIPS 2023):
     from mario_gpt import MarioLM
@@ -19,8 +21,9 @@ API verified against official repo (shyamsn97/mario-gpt, NeurIPS 2023):
 LAZY IMPORT: importing this module does NOT pull torch/transformers. Only
 generate() does, so mock-first tests stay fast and dependency-free. The
 adapter.py `_make_backbone("mariogpt")` returns this class; if mario_gpt is
-not installed, the FIRST generate() call raises ImportError with a clear
-message — mock tests are unaffected.
+not installed (or the wrong transformers version is present), the FIRST
+generate() call raises ImportError with a clear message — mock tests are
+unaffected.
 
 ANTI-CORRUPTION LAYER: MarioGPT emits SMB tile chars on a 14-row grid (X S - ?
 o E B | [ ] etc.). We (1) crop to requested width x height, (2) normalize tiles
@@ -197,9 +200,10 @@ class MarioGPTBackbone(GameBackbone):
             from mario_gpt import MarioLM  # lazy import
         except ImportError as e:
             raise ImportError(
-                "mario_gpt not installed. Install with:  pip install mario-gpt  "
-                "(pulls torch + transformers + Pillow). "
-                "Or use backbone='mock' for dependency-free tests."
+                "MarioGPT could not be imported. Ensure the compatible "
+                "dependency set is installed: "
+                "`pip install 'mario-gpt==0.1.3' 'transformers==4.30.2'`. "
+                f"Original import error: {e}"
             ) from e
         # No path args -> MarioLM() uses PRETRAINED_LM_PATH (fine-tuned Mario
         # model). Passing lm_path="distilgpt2" would load the base model and
@@ -337,7 +341,7 @@ if __name__ == "__main__":
         assert any(e["type"] == "P" for e in out["entities"])
         assert any(e["type"] == "G" for e in out["entities"])
     except ImportError as e:
-        assert "mario_gpt not installed" in str(e), f"unexpected ImportError: {e}"
+        assert "MarioGPT could not be imported" in str(e), f"unexpected ImportError: {e}"
 
     print("[OK] game backbone_mariogpt real self-test passed "
           "(lazy import + direction guard + schema)")
