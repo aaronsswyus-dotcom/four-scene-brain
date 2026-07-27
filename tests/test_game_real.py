@@ -105,8 +105,8 @@ class TestMarioGPTRealBackbone(unittest.TestCase):
         critic = GameCritic()
         draft = Draft(modality="pixel", payload=out, meta={"trace_id": "test-real"})
         goal = SubGoal(
-            subgoal_id="sg-real-1", target="game",
-            goal="草地关卡", summary="", predecessors=[],
+            id="sg-real-1", target="game",
+            goal="草地关卡", success_criteria="", depends_on=[],
             constraints={"direction": "level", "n_coins": 3},
         )
         verdict = critic.verify(draft, goal)
