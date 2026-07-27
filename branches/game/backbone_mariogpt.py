@@ -196,6 +196,14 @@ class MarioGPTBackbone(GameBackbone):
         try:
             from mario_gpt import MarioLM  # lazy import
         except ImportError as e:
+            msg = str(e)
+            if "AutoModelWithLMHead" in msg:
+                raise ImportError(
+                    "mario_gpt requires transformers <4.40 (AutoModelWithLMHead "
+                    "was removed in 4.40). In CI install:  "
+                    "pip install mario-gpt 'transformers==4.35.2'. "
+                    "Or use backbone='mock' for dependency-free tests."
+                ) from e
             raise ImportError(
                 "mario_gpt not installed. Install with:  pip install mario-gpt  "
                 "(pulls torch + transformers + Pillow). "

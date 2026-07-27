@@ -43,6 +43,21 @@
 - **与 mock 的差距**：mock 是确定性 sha256 布图，关卡结构人工可控但缺乏多样性；MarioGPT 输出有真实的"模型风格"多样性，但需要 anti-corruption layer 兜底结构正确性。这正是"mock 作 V1–V5 baseline + real 作 Phase 4 增量"分层的设计意图。
 - **sim2real / 质量备注**：MarioGPT 的 tile 分布反映 SMB 训练数据的偏置（管道/砖块多），可能与用户中文 prompt 的"草地/金币"语义对齐度不高。优化方向：在 `_translate_prompt` 里做更精细的中英文关键词映射，或后续飞轮收集 (prompt, level, critic_score) 三元组微调。
 
+## 实测迭代记录
+
+### 第 1 次 push（commit `c923b03`，仅 CI 修复）
+- Job1 mock-regression ✅、Job2 zero-diff ✅、Job3 game-real ❌、Job4 skip。
+- **失败根因**：`backbone_mariogpt.py` 使用 `MarioLM(lm_path="distilgpt2", ...)`，但 mario-gpt 只在 `lm_path=None` 时才加载微调好的 `shyamsn97/Mario-GPT2-700-context-length`；传 `distilgpt2` 会加载基础模型并在 `add_cross_attention` 处快速崩溃。
+- **修复**：`MarioLM()` 无路径参数；`__init__` 默认 `lm_path=None`；`num_steps = 14*width`（避免生成 1 行退化关卡）。
+
+### 第 2 次 push（commit `07abb8e`，MarioGPT 修复）
+- Job1 ✅、Job2 ✅、Job3 ❌、Job4 skip。
+- **失败根因**：`mario-gpt` import 时报 `ImportError: cannot import name 'AutoModelWithLMHead' from 'transformers'`。`mario-gpt` 未 pin transformers，CI 装到最新版（5.14.1），而 `AutoModelWithLMHead` 在 transformers>=4.40 被移除。
+- **修复**：在 `.github/workflows/phase4-tests.yml` 的 `game-real-mariogpt` job 中把 transformers 钉到 `4.35.2`（仍保留 `AutoModelWithLMHead`，与 Ubuntu 3.11 预编译 wheel 兼容）。同时在 `backbone_mariogpt.py` 的 ImportError 提示中明确给出该 pin 命令。
+
+### 第 3 次 push（待跑）
+- 已提交修复，等待 GitHub Actions 验证。
+
 ## 结论
 
 - [x] 可上线（接入 adapter，mock/real 可切换）—— **代码已落地**：

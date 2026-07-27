@@ -127,8 +127,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          # mario-gpt pulls torch + transformers + Pillow (~500MB download)
-          pip install mario-gpt
+          # mario-gpt pulls torch + transformers + Pillow (~500MB download).
+          # mario-gpt imports AutoModelWithLMHead, which was removed in
+          # transformers>=4.40; pin a known-working version.
+          pip install mario-gpt "transformers==4.35.2"
 
       - name: Cache HuggingFace model (distilgpt2 ~82M)
         uses: actions/cache@v4
