@@ -17,23 +17,23 @@
 |---|---|---|
 | **T1 许可证** | ✅ | mario-gpt 仓库 MIT License；distilgpt2 权重 Apache 2.0；均允许商用。已核实 LICENSE 文件与 HuggingFace 模型卡。 |
 | **T2 健康度** | ⚠️ | shyamsn97/mario-gpt：NeurIPS 2023 论文配套代码，40 commits，最后更新 2023-08-03。维护已停滞但有官方 HuggingFace demo（multimodalart/mariogpt space）、社区使用记录可查。判定为"稳定但不再更新"，功能完整可用，无已知 critical bug。 |
-| **T3 隔离安装** | ⏳ 待实测 | `pip install mario-gpt` 拉取 torch + transformers + Pillow（~500MB）。本地沙箱未装；GitHub Actions `game-real-mariogpt` job 用 python 3.11 + ubuntu-latest 实测。 |
-| **T4 官方 quickstart** | ⏳ 待实测 | README 示例：`MarioLM()` → `lm.sample(prompts=[...], num_steps=1400, temperature=2.0)` → `out.level`。adapter 已按此 API 实现，待 GitHub Actions 跑通验证。 |
+| **T3 隔离安装** | ✅ 实测通过 | `pip install mario-gpt "transformers==4.35.2"`（Ubuntu 3.11 runner，torch 2.13 + transformers 4.35.2 + tokenizers 0.15.2 均有预编译 wheel，一次装好）。于 run #11（2026-07-27）实测成功。 |
+| **T4 官方 quickstart** | ✅ 实测通过 | README 示例 `MarioLM().sample(prompts=[...], num_steps=..., temperature=...)` → `out.level` 在 CI 真实跑通（6 测试全过）。adapter 实现与官方 API 一致。 |
 | **T5 接口探针** | ✅ 设计层 | `out.level` 是 `List[str]`（每行一个元素，14 行高 × num_steps 列宽）。adapter 内 `_normalize_smb_level` 做 SMB tile → 我们的 schema（# . P G C E H）映射 + 强制四边封闭 + 1P/1G + BFS 走廊，输出与 `MockGameBackbone` 的 level schema 完全对齐。 |
 
 ## 自动测试结果
 
-> 以下为设计预期；GitHub Actions `game-real-mariogpt` job 跑通后用实测数据替换 ⏳。
+> **2026-07-27 run #11（commit `849a609`）全绿**：6 个真测试 ✅ 全过；mock 回归 ✅；zero-diff ✅。Phase 4 第一个真 backbone 在 CI 闭环。
 
 | 测试 | 结果 | 备注 |
 |---|---|---|
-| generate schema 对齐 | ⏳ 待实测 | `tests/test_game_real.py::test_1_generate_schema`：断言 level_map/width/height/entities/theme/text_prompt 字段齐 + 1P/1G |
-| seed 确定性 | ⏳ 待实测 | `test_2_determinism_seed`：同 seed + temperature=0.8 两次，断言 level_map bit-identical |
-| Critic 集成（流程通） | ⏳ 待实测 | `test_3_critic_integration`：真输出喂 GameCritic，断言产出 Verification 对象（不判分高低） |
-| SafetyGate BLOCK/PASS | ⏳ 待实测 | `test_4_safety_gate`：gore prompt → BLOCK；正常 prompt + 合规尺寸 → PASS |
-| worldmodel 拒绝 | ⏳ 待实测 | `test_5_worldmodel_raises`：MarioGPT 是 level-only，worldmodel 必须 NotImplementedError |
-| get_info 契约 | ⏳ 待实测 | `test_6_get_info_contract`：status=="real" + license 以 MIT 开头 |
-| mock 全量回归（不回归） | ✅ 本地已验证 | 73 passed + 6 skipped（real 默认 skip）；zero-diff 通过；common/ 零改动 |
+| generate schema 对齐 | ✅ 通过 | `test_1_generate_schema`：level_map/width/height/entities/theme/text_prompt 字段齐 + 1P/1G |
+| seed 确定性 | ✅ 通过 | `test_2_determinism_seed`：同 seed 两次，level_map bit-identical（torch.manual_seed 控制） |
+| Critic 集成（流程通） | ✅ 通过 | `test_3_critic_integration`：真输出喂 GameCritic，产出 Verification 对象（修复了 SubGoal 字段名 bug） |
+| SafetyGate BLOCK/PASS | ✅ 通过 | `test_4_safety_gate`：gore prompt → BLOCK；正常 prompt + 合规尺寸 → PASS |
+| worldmodel 拒绝 | ✅ 通过 | `test_5_worldmodel_raises`：MarioGPT level-only，worldmodel → NotImplementedError |
+| get_info 契约 | ✅ 通过 | `test_6_get_info_contract`：status=="real" + license 以 MIT 开头 |
+| mock 全量回归（不回归） | ✅ 通过 | 73 passed + 6 skipped（real 默认 skip）；zero-diff 通过；common/ 零改动 |
 
 ## 质量观察（主观，非验收）
 
@@ -55,20 +55,24 @@
 - **失败根因**：`mario-gpt` import 时报 `ImportError: cannot import name 'AutoModelWithLMHead' from 'transformers'`。`mario-gpt` 未 pin transformers，CI 装到最新版（5.14.1），而 `AutoModelWithLMHead` 在 transformers>=4.40 被移除。
 - **修复**：在 `.github/workflows/phase4-tests.yml` 的 `game-real-mariogpt` job 中把 transformers 钉到 `4.35.2`（仍保留 `AutoModelWithLMHead`，与 Ubuntu 3.11 预编译 wheel 兼容）。同时在 `backbone_mariogpt.py` 的 ImportError 提示中明确给出该 pin 命令。
 
-### 第 3 次 push（待跑）
-- 已提交修复，等待 GitHub Actions 验证。
+### 第 3 次 push（commit `849a609`，test_3 SubGoal 字段修复）
+- run #11（2026-07-27T00:52Z）**全绿 success** ✅。
+- Job1 mock-regression ✅、Job2 zero-diff ✅、Job3 game-real ✅（6/6）、Job4 skip。
+- **最后一处挂的根因**：`test_3_critic_integration` 用 `SubGoal(subgoal_id=..., summary=..., predecessors=...)`，但 `SubGoal` 真实字段是 `id / success_criteria / depends_on`（frozen 契约，common/ 不改）。改测试参数即可，不动 common（零 diff 守住）。
+- **结果**：game-A MarioGPT 真模型在 GitHub Actions 上 **6/6 全过**，Phase 4 第一个真 backbone 闭环。
 
 ## 结论
 
-- [x] 可上线（接入 adapter，mock/real 可切换）—— **代码已落地**：
+- [x] 可上线（接入 adapter，mock/real 可切换）—— **代码已落地 + 已实测通过（run #11 success）**：
   - `branches/game/backbone_mariogpt.py`（stub → real，lazy import + anti-corruption layer）
   - `branches/game/adapter.py`（加 `backbone="mariogpt"` 选项）
-  - `tests/test_game_real.py`（6 个默认-skip 测试）
-  - `.github/workflows/phase4-tests.yml`（`game-real-mariogpt` job 在 push main 时自动跑）
+  - `tests/test_game_real.py`（6 个默认-skip 测试，CI push main 时全跑通）
+  - `.github/workflows/phase4-tests.yml`（`game-real-mariogpt` job 实测 success）
+- [x] T1–T5 全部 ✅（T1 MIT/Apache ✅、T2 stale-but-stable ⚠️、T3 隔离安装 ✅、T4 quickstart ✅、T5 接口对齐 ✅）
 - [ ] 需降级备选（原因）—— 不适用
 - [ ] 暂不接（原因）—— 不适用
 
-**待办**：用户 `git push origin main` 后，GitHub Actions 自动触发 `game-real-mariogpt` job；跑通后用实测数据回填本报告的 ⏳ 项，并把 `docs/phase4-integration-framework.md` §4.2 的 game-A 状态从"骨架已就位"升级为"已实测通过"。
+**下一步**：`docs/phase4-integration-framework.md` §4.2 的 game-A 状态升级为"已实测通过"；video/3d 真接入（fal.ai，待 FAL_KEY + 说"可以开发"）与 robot GR00T（Azure GPU）为后续 Phase 4 分支。
 
 ## T1 联网核查记录（2026-07-27）
 
